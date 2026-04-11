@@ -18,7 +18,7 @@ app.get("/", (req, res) => {
 app.get("/api/classify", async (req, res) => {
   const { name } = req.query;
 
-  // Input validation
+  // Input validation 
   if (name === undefined || name === null) {
     return res.status(400).json({
       status: "error",
@@ -57,7 +57,7 @@ app.get("/api/classify", async (req, res) => {
     });
   }
 
-  // Processing rules
+  //  Processing rules
   const gender       = raw.gender;
   const probability  = raw.probability;
   const sample_size  = raw.count;
