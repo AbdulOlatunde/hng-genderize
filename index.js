@@ -57,7 +57,7 @@ app.get("/api/classify", async (req, res) => {
     });
   }
 
-  //  Processing rules
+  // Processing rules
   const gender       = raw.gender;
   const probability  = raw.probability;
   const sample_size  = raw.count;
@@ -83,6 +83,5 @@ app.use((err, req, res, next) => {
   res.status(500).json({ status: "error", message: "Internal server error" });
 });
 
-app.listen(PORT, () => {
-  console.log(`Server running on port ${PORT}`);
-});
+
+module.exports = app;
