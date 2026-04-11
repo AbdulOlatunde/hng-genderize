@@ -10,21 +10,26 @@ app.use((req, res, next) => {
   next();
 });
 
+// Health check route 
+app.get("/", (req, res) => {
+  res.status(200).json({ status: "ok", message: "Genderize API is running" });
+});
+
 app.get("/api/classify", async (req, res) => {
   const { name } = req.query;
 
   // Input validation
-  if (name === undefined || name === "") {
+  if (name === undefined || name === null) {
     return res.status(400).json({
       status: "error",
       message: "Missing or empty 'name' query parameter",
     });
   }
 
-  if (typeof name !== "string") {
-    return res.status(422).json({
+  if (typeof name !== "string" || name.trim() === "") {
+    return res.status(400).json({
       status: "error",
-      message: "'name' must be a string",
+      message: "Missing or empty 'name' query parameter",
     });
   }
 
@@ -32,8 +37,8 @@ app.get("/api/classify", async (req, res) => {
   let apiResponse;
   try {
     apiResponse = await axios.get("https://api.genderize.io", {
-      params: { name },
-      timeout: 4500, // stay well under 500ms processing budget; network is external
+      params: { name: name.trim() },
+      timeout: 4500,
     });
   } catch (err) {
     return res.status(502).json({
@@ -44,7 +49,7 @@ app.get("/api/classify", async (req, res) => {
 
   const raw = apiResponse.data;
 
-  //Genderize edge cases
+  // Genderize edge cases
   if (!raw.gender || raw.count === 0) {
     return res.status(200).json({
       status: "error",
@@ -53,16 +58,16 @@ app.get("/api/classify", async (req, res) => {
   }
 
   // Processing rules
-  const gender      = raw.gender;
-  const probability = raw.probability;
-  const sample_size = raw.count;                          // renamed
+  const gender       = raw.gender;
+  const probability  = raw.probability;
+  const sample_size  = raw.count;
   const is_confident = probability >= 0.7 && sample_size >= 100;
-  const processed_at = new Date().toISOString();          // UTC ISO 8601
+  const processed_at = new Date().toISOString();
 
   return res.status(200).json({
     status: "success",
     data: {
-      name,
+      name: name.trim(),
       gender,
       probability,
       sample_size,
